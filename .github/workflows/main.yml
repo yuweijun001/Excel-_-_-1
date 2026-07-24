@@ -1,0 +1,68 @@
+name: Build Windows software
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Build portable EXE
+        shell: cmd
+        run: |
+          python -m PyInstaller --noconfirm --clean --onefile --windowed ^
+            --name "ExcelWorkbookSplitter" ^
+            --icon "assets\app.ico" ^
+            --add-data "assets\app.ico;." ^
+            workbook_splitter_gui.py
+
+      - name: Compile installer
+        shell: powershell
+        run: |
+          choco install innosetup -y --no-progress
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\setup.iss"
+
+      - name: Package portable version
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path release\portable
+          Copy-Item dist\ExcelWorkbookSplitter.exe release\portable\
+          Copy-Item README_用户使用说明.txt release\portable\
+          Compress-Archive -Path release\portable\* -DestinationPath release\ExcelWorkbookSplitter_Portable.zip
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExcelWorkbookSplitter-Windows
+          path: |
+            release/ExcelWorkbookSplitter_Portable.zip
+            release/ExcelWorkbookSplitter_Setup.exe
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/ExcelWorkbookSplitter_Portable.zip
+            release/ExcelWorkbookSplitter_Setup.exe
