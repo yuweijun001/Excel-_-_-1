@@ -48,7 +48,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path release\portable
           Copy-Item dist\ExcelWorkbookSplitter.exe release\portable\
-          Copy-Item README_用户使用说明.txt release\portable\
+          Copy-Item README_USER_GUIDE.txt release\portable\
           Compress-Archive -Path release\portable\* -DestinationPath release\ExcelWorkbookSplitter_Portable.zip
 
       - name: Upload build artifacts
