@@ -168,7 +168,7 @@ class App(tk.Tk):
 
         self.input_var = tk.StringVar()
         self.output_var = tk.StringVar()
-        self.include_hidden_var = tk.BooleanVar(False)
+        self.include_hidden_var = tk.BooleanVar(value=False)
         self.status_var = tk.StringVar("请选择需要拆分的 Excel 工作簿。")
         self.sheet_infos: list[SheetInfo] = []
         self.sheet_vars: dict[str, tk.BooleanVar] = {}
